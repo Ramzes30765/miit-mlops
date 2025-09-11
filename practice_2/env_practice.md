@@ -131,6 +131,12 @@ Linux
 
 `poetry lock --regenerate`
 
+#### Переключение между окружениями
+
+`poetry env use 3.10`
+
+`poetry env list`
+
 #### Проект как пакет
 
 `poetry install --no-root`
@@ -164,6 +170,10 @@ packages = [
 `poetry install`
 
 `from miit_venv.main import foo`
+
+#### Запуск файлов
+
+`poetry run plt_temp.py`
 
 #### Указание зависимостей
 
