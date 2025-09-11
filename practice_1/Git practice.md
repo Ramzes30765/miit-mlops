@@ -49,7 +49,8 @@
     * `print("Good commit_1")`
     * `print("Bad commit_1")`
     * `print("Bad commit_2")`
-    ....
+   
+    * ....
     * `print("Bad commit_N")`
 
     Откатите плохие коммиты, сохранив `Good commit1`, таким образом, что бы плохие коммиты не засоряли историю git.
