@@ -1,12 +1,11 @@
-import numpy as np
+import pickle, json, os
+from datetime import datetime
+
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
-import pickle
-import json
-import os
-from datetime import datetime
+
 
 def train_model():
     print("Загрузка набора данных Iris...")
