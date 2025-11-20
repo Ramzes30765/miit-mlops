@@ -1,0 +1,7 @@
+fastapi==0.115.14
+uvicorn[standard]==0.34.3
+pydantic-settings==2.10.1
+python-multipart==0.0.20
+lap==0.5.12
+onnxruntime-gpu==1.22.0
+tritonclient[all]==2.59.0

@@ -1,0 +1,67 @@
+services:
+  triton:
+    image: nvcr.io/nvidia/tritonserver:24.09-py3
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./triton_model_repo:/models
+    command:
+      - tritonserver
+      - --model-repository=/models
+      - --model-control-mode=explicit
+      - --load-model=yolo_det
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+
+  perf: 
+    image: nvcr.io/nvidia/tritonserver:24.09-py3-sdk
+    runtime: nvidia
+    depends_on:
+      triton:
+        condition: "service_healthy"
+    entrypoint: ["perf_analyzer"]
+    command:
+      - "-m"
+      - "yolo_det"
+      - "-u"
+      - "triton:8001"
+      - "-b"  
+      - "8"
+      - "-i"
+      - "grpc"
+      - "--shape"
+      - "images:3,640,480"
+      - "--measurement-interval"
+      - "10000"
+      - "--concurrency-range"
+      - "2"
+      - "--percentile"
+      - "50,90,95,99"
+    restart: "no"
+
+  analyzer:
+    image: nvcr.io/nvidia/tritonserver:24.09-py3-sdk
+    runtime: nvidia
+    depends_on:
+      triton:
+        condition: "service_healthy"
+    entrypoint: ["model-analyzer"]
+    command:
+      - "profile"
+      - "-f"
+      - "/config/config.yaml"
+      - "--override-output-model-repository" 
+    volumes:
+      - ./triton_model_repo:/models:ro
+      - ./triton_ma_results:/results
+      - ./triton_ma_config:/config
+    restart: "no"
