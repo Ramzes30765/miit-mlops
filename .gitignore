@@ -55,6 +55,8 @@ temp/
 # Local experiment artifacts
 mlruns/
 mlartifacts/
+practice_4/artifacts/
+practice_4/mlflow.db
 wandb/
 .clearml/
 .dvc/cache/
