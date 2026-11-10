@@ -1,4 +1,18 @@
-# Практическая работа: контейнер для обучения модели
+# Практика 5. Обучение модели в Docker
+
+## Общий проект для практик 5-7
+
+Создайте один GitLab-репозиторий `mlops-iris-<surname>` с основной веткой
+`main`. Укажите фамилию латиницей. Выполняйте все три практики в этом
+репозитории и ведите один README.
+
+1. В практике 5 обучите модель Iris в контейнере и сохраните модель и метрики.
+2. В [практике 6](../practice_6/fastapi_practice.md) запустите FastAPI-сервис,
+   который загружает эти файлы.
+3. В [практике 7](../practice_7/ci_practice.md) настройте GitLab CI для
+   проверок, сборки и запуска сервиса.
+
+После третьего этапа сдайте один репозиторий. Порядок сдачи указан в практике 7.
 
 ## Цель
 
@@ -8,7 +22,7 @@
 
 ## Исходные данные
 
-Используйте `sklearn.datasets.load_wine()` и
+Используйте `sklearn.datasets.load_iris()` и
 `RandomForestClassifier`. Код обучения должен находиться в отдельном файле
 `train_model.py`.
 
@@ -25,8 +39,8 @@
 |---|---:|
 | `MODEL_DIR` | `/app/models` |
 | `MODEL_VERSION` | `1.0.0` |
-| `N_ESTIMATORS` | `150` |
-| `TEST_SIZE` | `0.25` |
+| `N_ESTIMATORS` | `100` |
+| `TEST_SIZE` | `0.3` |
 | `RANDOM_STATE` | `42` |
 
 Некорректные значения должны завершать программу с понятной ошибкой до начала
@@ -37,7 +51,7 @@
 После успешного запуска в `MODEL_DIR` должны находиться:
 
 ```text
-wine_random_forest.joblib
+iris_random_forest.joblib
 metrics.json
 ```
 
@@ -46,14 +60,20 @@ metrics.json
 ```json
 {
   "model_version": "1.0.0",
-  "dataset": "wine",
-  "accuracy": 0.95,
-  "n_samples_train": 133,
+  "dataset": "iris",
+  "accuracy": 0.8889,
+  "n_samples_train": 105,
   "n_samples_test": 45,
-  "n_estimators": 150,
-  "test_size": 0.25,
+  "n_estimators": 100,
+  "test_size": 0.3,
   "random_state": 42,
-  "classes": ["class_0", "class_1", "class_2"],
+  "classes": ["setosa", "versicolor", "virginica"],
+  "feature_names": [
+    "sepal length (cm)",
+    "sepal width (cm)",
+    "petal length (cm)",
+    "petal width (cm)"
+  ],
   "created_at_utc": "2026-11-10T10:00:00+00:00"
 }
 ```
@@ -61,27 +81,42 @@ metrics.json
 Числа accuracy и размеров выборок в примере показывают форму файла. Сохраните
 фактические результаты своего запуска.
 
+Запишите `classes` в порядке числовых меток модели, а `feature_names` в
+порядке столбцов обучающей выборки. Сервис будет использовать этот порядок для
+сопоставления классов и признаков.
+
 ## Структура проекта
 
 ```text
-docker_homework/
-  Dockerfile
+mlops-iris-<surname>/
+  Dockerfile.train
   .dockerignore
-  requirements.txt
+  .gitignore
+  pyproject.toml
+  poetry.lock
   train_model.py
   README.md
+  reports/
+    metrics-default.json
+    metrics-alternative.json
   tests/
     test_training.py
 ```
 
-Каталог с созданными моделями не добавляется в Git и build context.
+Используйте Python 3.12 и Poetry. Укажите `scikit-learn` и `joblib` в
+основных зависимостях, а `pytest` в группе `test`. Добавьте в Git
+`pyproject.toml` и `poetry.lock`. На следующих этапах дополняйте эти же файлы.
 
-## Требования к Dockerfile
+Исключите `models/` из Git и контекста сборки. Два отчёта об обучении храните
+в `reports/`.
 
-Dockerfile должен:
+## Требования к Dockerfile.train
 
-- использовать официальный Python-образ с фиксированным major и minor тегом;
-- сначала копировать `requirements.txt` и устанавливать зависимости;
+При сборке образа для обучения выполните следующие требования.
+
+- использовать официальный Python-образ с полным тегом версии Python 3.12;
+- сначала копировать `pyproject.toml` и `poetry.lock` и устанавливать основные
+  зависимости из lock-файла фиксированной версией Poetry;
 - затем копировать код обучения;
 - задавать абсолютный `WORKDIR`;
 - устанавливать значения переменных окружения по умолчанию;
@@ -95,20 +130,25 @@ Dockerfile должен:
 
 ## Постоянное хранение
 
-Покажите два запуска:
+Покажите два запуска.
 
-1. с именованным volume;
-2. с bind mount в локальный каталог `models`.
+1. С параметрами по умолчанию и именованным volume `iris-models`,
+   подключённым к `/app/models`.
+2. С другими значениями `N_ESTIMATORS` и `RANDOM_STATE` и bind mount из
+   локального каталога `models` в `/app/models`.
 
 После удаления контейнера файлы модели и метрик должны оставаться доступными.
 В README приведите команды создания хранилища, запуска контейнера и проверки
-файлов.
+файлов. У пользователя контейнера должна быть возможность записывать файлы
+в подключённое хранилище. На следующем этапе подключите тот же volume к
+контейнеру сервиса.
 
 ## Параметризация
 
-Выполните два запуска с разными значениями `N_ESTIMATORS` и `RANDOM_STATE`.
-После каждого запуска сохраните `metrics.json` под отдельным именем или в
-отдельном каталоге. В README сравните параметры и полученную accuracy.
+Передайте изменённые параметры через переменные окружения при `docker run`.
+Скопируйте `metrics.json` первого запуска в `reports/metrics-default.json`,
+а второго в `reports/metrics-alternative.json`. В README сравните параметры
+и полученную accuracy.
 
 ## .dockerignore
 
@@ -120,7 +160,7 @@ Dockerfile должен:
 - `.pytest_cache`;
 - notebook;
 - тесты;
-- локальные модели и метрики.
+- локальные модели и метрики в `models/` и `reports/`.
 
 ## Автоматические тесты
 
@@ -142,24 +182,24 @@ Dockerfile должен:
 В README сохраните команды и результаты следующих проверок:
 
 ```bash
-docker build -t wine-trainer:1.0 .
-docker image inspect wine-trainer:1.0
-docker image history wine-trainer:1.0
-docker run --rm --entrypoint id wine-trainer:1.0
+docker build -f Dockerfile.train -t iris-trainer:1.0 .
+docker image inspect iris-trainer:1.0
+docker image history iris-trainer:1.0
+docker run --rm --entrypoint id iris-trainer:1.0
 ```
 
 Проверка `id` должна подтверждать, что основной процесс запускается не от
 `root`.
 
-## Что сдавать
+## Результат этапа
 
 - исходный код обучения;
-- `Dockerfile`;
+- `Dockerfile.train`;
 - `.dockerignore`;
-- файлы зависимостей;
+- `pyproject.toml` и `poetry.lock`;
 - автоматические тесты;
 - README с командами и фактическими результатами;
-- два файла метрик или два каталога результатов для разных конфигураций.
+- два файла метрик в `reports/`.
 
 Образ, виртуальное окружение и каталог Docker volume в Git не добавляются.
 
