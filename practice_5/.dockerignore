@@ -1,0 +1,11 @@
+.git
+.gitignore
+.ipynb_checkpoints
+.pytest_cache
+__pycache__
+*.ipynb
+*.md
+*.pyc
+.venv
+models
+tests

@@ -57,6 +57,7 @@ mlruns/
 mlartifacts/
 practice_4/artifacts/
 practice_4/mlflow.db
+practice_5/models/
 wandb/
 .clearml/
 .dvc/cache/
