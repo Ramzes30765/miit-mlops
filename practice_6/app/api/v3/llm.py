@@ -1,20 +1,20 @@
 import time
+
 from fastapi import APIRouter
+
 from app.models.schemas import TextPredictIn, TextPredictOut
 
-router = APIRouter(prefix="/api/v2", tags=["LLM"])
+router = APIRouter(tags=["Text API demo"])
+
 
 @router.post("/predict-text", response_model=TextPredictOut)
-async def predict_text(req: TextPredictIn) -> TextPredictOut:
-    """
-    Принимает текст и возвращает заглушку ответа языковой модели.
-    """
+def predict_text(req: TextPredictIn) -> TextPredictOut:
+    """Принимает текст и возвращает демонстрационный ответ без вызова модели."""
     t0 = time.perf_counter()
 
-    # Заглушка генерации
-    reply = f"Модель отвечает на: {req.prompt}»"
+    reply = f"Модель отвечает на запрос: {req.prompt}"
     dt = (time.perf_counter() - t0) * 1000.0
-    
+
     return TextPredictOut(
         reply=reply,
         model_version="demo-llm-v1",

@@ -1,24 +1,21 @@
-from fastapi import FastAPI
-import uvicorn
+from fastapi import FastAPI, Query
 
-app = FastAPI()
+app = FastAPI(title="FastAPI basics", version="0.1.0")
 
 
 @app.get("/")
-async def root():
+def root():
     return {"message": "Hello World"}
 
+
 @app.get("/items/{item_id}")
-async def read_item(item_id: int):
+def read_item(item_id: int):
     return {"item_id": item_id}
-# http://127.0.0.1:8000/items/3
+
 
 @app.get("/search")
-async def search_items(q: str, limit: int = 10):
-    return {"query": q, "limit": limit}
-
-# # python app/main.py
-# if __name__ == '__main__':
-#     uvicorn.run(app, port=8000)
-
-# uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+def search_items(
+    query: str,
+    limit: int = Query(default=10, ge=1, le=100),
+):
+    return {"query": query, "limit": limit}

@@ -1,0 +1,19 @@
+# API, валидация и запуск сервера
+email-validator>=2.2,<3
+fastapi>=0.115,<1
+python-multipart>=0.0.20,<1
+uvicorn[standard]>=0.30,<1
+
+# HTTP-клиенты, используемые TestClient и примерами запросов
+httpx>=0.28,<1
+httpx2>=2,<3
+
+# Выполнение notebook и автоматических тестов
+ipykernel>=6.29,<8
+nbclient>=0.10,<1
+nbformat>=5.10,<6
+pytest>=8,<10
+
+# Обучение и сохранение модели в самостоятельной работе
+joblib>=1.4,<2
+scikit-learn>=1.5,<2

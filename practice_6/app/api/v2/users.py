@@ -1,18 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
+
 from app.models.schemas import UserCreate, UserResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-fake_users_db = []  # временное хранилище
+fake_users_db: list[dict] = []
 
-@router.post("/", response_model=UserResponse)
+
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate):
     """Создание нового пользователя."""
     new_user = {
         "id": len(fake_users_db) + 1,
         "name": user.name,
         "email": user.email,
-        "items": []
+        "items": [],
     }
     fake_users_db.append(new_user)
     return new_user
@@ -24,4 +26,4 @@ def get_user(user_id: int):
     for u in fake_users_db:
         if u["id"] == user_id:
             return u
-    return {"error": "User not found"}
+    raise HTTPException(status_code=404, detail="User not found")
